@@ -135,8 +135,13 @@ class CanvasPointRenderer {
 }
 
 class BirthdayParticles {
-  constructor(container) {
+  constructor(container, withWords = false) {
     this.container = container;
+    this.withWords = withWords;
+    this.dustLightness = withWords ? .43 : .6;
+    this.rotationDamping = withWords ? .9 : .96;
+    this.autoTurn = withWords ? .0057 : .005;
+    this.reducedTimeScale = withWords ? 0 : .18;
     this.mobile = matchMedia('(pointer: coarse)').matches;
     this.count = this.mobile ? 4000 : 7500;
     this.palette = {
@@ -192,10 +197,18 @@ class BirthdayParticles {
     this.width = this.container.clientWidth;
     this.height = this.container.clientHeight;
     this.camera.aspect = this.width / this.height;
-    // Pull back just enough on narrow phones to keep both edges of the bottom tier visible.
-    const fitDistance = 22 / (Math.tan(THREE.MathUtils.degToRad(37.5)) * this.camera.aspect);
-    this.camera.position.z = Math.max(50, Math.hypot(18, fitDistance));
+    const tanHalfFov = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+    if (this.withWords) {
+      // The final scene keeps the approved cake and sprite scale, independently of the word orbits.
+      const focal = this.height / (2 * tanHalfFov);
+      const halfWidth = this.width / 2 - Math.min(46, this.width * .12);
+      this.camera.position.z = Math.max(62, Math.hypot(26, 26 * focal / halfWidth));
+    } else {
+      const fitDistance = 22 / (tanHalfFov * this.camera.aspect);
+      this.camera.position.z = Math.max(50, Math.hypot(18, fitDistance));
+    }
     this.camera.updateProjectionMatrix();
+    this.camera.updateMatrixWorld();
     if (this.canvasRenderer) this.canvasRenderer.resize(this.width, this.height);
     else this.renderer.setSize(this.width, this.height, false);
   }
@@ -224,13 +237,19 @@ class BirthdayParticles {
   }
 
   turn(delta, isTouch) {
+    if (this.withWords) {
+      const angle = delta * (isTouch ? .012 : .006);
+      this.yaw += angle;
+      this.rotationVelocity = THREE.MathUtils.clamp(angle * .18, -.025, .025);
+      return;
+    }
     this.rotationVelocity = delta * (isTouch ? .015 : .008);
     this.yaw += this.rotationVelocity;
   }
 
   draw(dt, phase, wishProgress, reducedMotion) {
     const frames = dt * 60;
-    this.time += frames * .02 * (reducedMotion ? .18 : 1);
+    this.time += frames * .02 * (reducedMotion ? this.reducedTimeScale : 1);
     const t = this.time;
     const gather = 1 - .92 ** frames;
     const tint = 1 - .9 ** frames;
@@ -248,11 +267,12 @@ class BirthdayParticles {
         p.color.setHSL(.8 + Math.sin(t * .1 + target.x * .01) * .1, .7, .6);
       } else if (afterWish && p.kind === 'bg') {
         const a = p.angle + t * .1 + p.orbitSpeed;
-        const r = p.radius + Math.sin(t + i) * 5;
+        const inCluster = p.clusterPhase !== undefined;
+        const r = p.radius + (inCluster ? .4 * Math.sin(t * .6 + p.clusterPhase) : Math.sin(t + i) * 5);
         target.x = Math.cos(a) * r;
         target.z = Math.sin(a) * r;
-        target.y += Math.sin(t + p.noise) * 2;
-        p.color.setHSL(.9 + Math.sin(t + i * .01) * .05, .8, .6);
+        target.y += inCluster ? .32 * Math.sin(t + p.clusterPhase) : Math.sin(t + p.noise) * 2;
+        p.color.setHSL(.9 + Math.sin(t + i * .01) * .05, .8, inCluster ? .67 : this.dustLightness);
       } else if (p.kind === 'flame') {
         target.x += Math.sin(t * 6 + p.noise) * .6;
         if (wishProgress > .1) {
@@ -275,8 +295,9 @@ class BirthdayParticles {
 
     if (phase === 'free') {
       if (!this.dragging) {
-        this.rotationVelocity *= .96 ** frames;
-        this.yaw += (this.rotationVelocity + (reducedMotion ? 0 : .005)) * frames;
+        this.rotationVelocity *= this.rotationDamping ** frames;
+        if (this.withWords && reducedMotion) this.rotationVelocity = 0;
+        this.yaw += (this.rotationVelocity + (reducedMotion ? 0 : this.autoTurn)) * frames;
       }
     } else if (phase !== 'card') {
       this.yaw = phase === 'intro' ? 0 : Math.sin(t * .15) * .15;

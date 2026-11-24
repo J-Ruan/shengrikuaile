@@ -2,7 +2,9 @@
 
 const byId = id => document.getElementById(id);
 const stage = byId('canvas-container');
+const wordsLayer = byId('stardust-words');
 let scene;
+let stardustWords;
 const bgm = byId('bgm');
 const paletteButton = byId('settings-toggle');
 const palettePanel = byId('settings-panel');
@@ -19,6 +21,7 @@ let progress = 0;
 let holdingSpace = false;
 let activePointer = null;
 let previousX = 0;
+let hoverX = null;
 const wishHoldMs = 2000;
 let holdStartedAt = null;
 
@@ -64,6 +67,7 @@ byId('start-btn').addEventListener('click', () => {
 function showCake() {
   phase = 'wish';
   scene.transitionTo('cake');
+  if (wordsLayer) stardustWords = new StardustWords(scene, wordsLayer);
   const hint = byId('wish-hint');
   if (!scene.mobile) hint.textContent = '按住蛋糕或空格键 2 秒许愿';
   byId('countdown-label').textContent = hint.textContent;
@@ -111,12 +115,19 @@ stage.addEventListener('pointerdown', event => {
   }
 });
 stage.addEventListener('pointermove', event => {
+  if (wordsLayer && phase === 'free' && event.pointerType === 'mouse' && activePointer === null) {
+    if (hoverX !== null) scene.turn(event.clientX - hoverX, false);
+    hoverX = event.clientX;
+    return;
+  }
+  hoverX = null;
   if (activePointer !== event.pointerId || !scene.dragging) return;
   const delta = event.clientX - previousX;
   scene.turn(delta, event.pointerType !== 'mouse');
   previousX = event.clientX;
   if (delta !== 0) byId('rotate-hint').hidden = true;
 });
+stage.addEventListener('pointerleave', () => { hoverX = null; });
 for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   stage.addEventListener(eventName, event => {
     if (activePointer !== event.pointerId) return;
@@ -197,6 +208,8 @@ function setCardFace(flipped) {
 
 function openCard() {
   phase = 'card';
+  if (wordsLayer) wordsLayer.hidden = true;
+  hoverX = null;
   releaseInputs();
   setPaletteOpen(false);
   paletteButton.hidden = true;
@@ -222,6 +235,10 @@ byId('close-card-btn').addEventListener('click', () => {
   paletteButton.hidden = false;
   byId('rotate-hint').hidden = false;
   byId('floating-gift-btn').hidden = false;
+  if (wordsLayer) {
+    wordsLayer.hidden = false;
+    byId('rotate-hint').textContent = scene.mobile ? '左右滑动，看看星尘里的字' : '左右移动鼠标，看看星尘里的字';
+  }
   stage.focus();
 });
 
@@ -258,7 +275,9 @@ function render(now) {
       byId('reveal-btn').focus();
     }
   }
+  if (phase === 'free') stardustWords?.layout();
   scene.draw(Math.min(elapsed, .1), phase, progress, reducedMotion.matches);
+  if (phase === 'free') stardustWords?.draw();
 }
 // Some mobile attachment viewers display HTML while blocking scripts or canvas.
 // Keep the native disclosure usable until the first interactive frame has rendered.
@@ -270,7 +289,7 @@ function enableInteractiveStart() {
     return;
   }
   try {
-    scene = new BirthdayParticles(stage);
+    scene = new BirthdayParticles(stage, Boolean(wordsLayer));
     scene.draw(1 / 60, phase, progress, reducedMotion.matches);
     requestAnimationFrame(render);
   } catch (error) {

@@ -218,8 +218,8 @@ class BirthdayParticles {
   transitionTo(shape) {
     const targets = this.shapes[shape];
     this.particles.forEach((p, i) => {
-      this.colors[i * 4 + 3] = 1;
       const next = targets[i];
+      this.colors[i * 4 + 3] = this.withWords && next?.kind === 'flame' ? 0 : 1;
       if (next) {
         p.base.copy(next.position);
         p.kind = next.kind;
@@ -289,8 +289,7 @@ class BirthdayParticles {
       } else if (afterWish && (p.kind === 'candle' || p.kind === 'cake')) {
         target.y += Math.sin(p.base.x * .5) * .5;
       }
-      // Keep the flame at the wick even when the cake is pressed as soon as it appears.
-      p.current.lerp(target, fixedFlame ? 1 : gather);
+      p.current.lerp(target, gather);
       p.current.toArray(this.positions, i * 3);
       const rgba = i * 4;
       const color = this.palette[p.layer] || p.color;

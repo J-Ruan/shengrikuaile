@@ -119,16 +119,17 @@ class CanvasPointRenderer {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = .8;
-    for (let i = 0; i < positions.length; i += 3) {
-      const depth = scene.camera.position.z - positions[i + 2] * cos + positions[i] * sin;
+    for (let i = 0; i < scene.count; i++) {
+      const pos = i * 3, rgba = i * 4;
+      const depth = scene.camera.position.z - positions[pos + 2] * cos + positions[pos] * sin;
       if (depth < 1) continue;
-      const x = width / 2 + (positions[i] * cos + positions[i + 2] * sin) * focal / depth;
-      const y = height / 2 - positions[i + 1] * focal / depth;
+      const x = width / 2 + (positions[pos] * cos + positions[pos + 2] * sin) * focal / depth;
+      const y = height / 2 - positions[pos + 1] * focal / depth;
       const size = Math.min(48, Math.max(.8, .6 * height / depth));
       if (x < -size || x > width + size || y < -size || y > height + size) continue;
-      const sprite = this.sprite(Math.round(colors[i] * 15), Math.round(colors[i + 1] * 15),
-        Math.round(colors[i + 2] * 15));
+      const sprite = this.sprite(Math.round(colors[rgba] * 15), Math.round(colors[rgba + 1] * 15),
+        Math.round(colors[rgba + 2] * 15));
+      ctx.globalAlpha = .8 * colors[rgba + 3];
       ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size);
     }
   }
@@ -158,13 +159,14 @@ class BirthdayParticles {
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0x000000, .002);
     this.positions = new Float32Array(this.count * 3);
-    this.colors = new Float32Array(this.count * 3);
+    this.colors = new Float32Array(this.count * 4);
     this.particles = Array.from({ length: this.count }, (_, i) => {
       const current = new THREE.Vector3((Math.random() - .5) * 300,
         (Math.random() - .5) * 300, (Math.random() - .5) * 200);
       const color = this.palette.bottom.clone();
       current.toArray(this.positions, i * 3);
-      color.toArray(this.colors, i * 3);
+      color.toArray(this.colors, i * 4);
+      this.colors[i * 4 + 3] = 1;
       return {
         current, base: current.clone(), color, kind: 'bg', layer: null,
         angle: Math.random() * TAU, radius: 20 + Math.random() * 40,
@@ -178,7 +180,7 @@ class BirthdayParticles {
       container.append(this.renderer.domElement);
       this.geometry = new THREE.BufferGeometry();
       this.geometry.setAttribute('position', new THREE.BufferAttribute(this.positions, 3).setUsage(THREE.DynamicDrawUsage));
-      this.geometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 3).setUsage(THREE.DynamicDrawUsage));
+      this.geometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 4).setUsage(THREE.DynamicDrawUsage));
       const material = new THREE.PointsMaterial({
         size: 1.2, vertexColors: true, map: circleTexture(), transparent: true, opacity: .8,
         depthWrite: false, blending: THREE.AdditiveBlending
@@ -216,6 +218,7 @@ class BirthdayParticles {
   transitionTo(shape) {
     const targets = this.shapes[shape];
     this.particles.forEach((p, i) => {
+      this.colors[i * 4 + 3] = 1;
       const next = targets[i];
       if (next) {
         p.base.copy(next.position);
@@ -253,10 +256,13 @@ class BirthdayParticles {
     const t = this.time;
     const gather = 1 - .92 ** frames;
     const tint = 1 - .9 ** frames;
+    const remaining = 1 - wishProgress;
+    const flameOpacity = remaining * remaining;
     const afterWish = phase === 'celebration' || phase === 'card' || phase === 'free';
     const target = this.target;
     for (let i = 0; i < this.count; i++) {
       const p = this.particles[i];
+      const fixedFlame = this.withWords && p.kind === 'flame';
       target.copy(p.base);
       if (phase === 'intro') {
         const a = p.angle + t * .05;
@@ -273,7 +279,7 @@ class BirthdayParticles {
         target.z = Math.sin(a) * r;
         target.y += inCluster ? .32 * Math.sin(t + p.clusterPhase) : Math.sin(t + p.noise) * 2;
         p.color.setHSL(.9 + Math.sin(t + i * .01) * .05, .8, inCluster ? .67 : this.dustLightness);
-      } else if (p.kind === 'flame') {
+      } else if (p.kind === 'flame' && !this.withWords) {
         target.x += Math.sin(t * 6 + p.noise) * .6;
         if (wishProgress > .1) {
           const lift = afterWish ? 60 : wishProgress * 25;
@@ -283,14 +289,19 @@ class BirthdayParticles {
       } else if (afterWish && (p.kind === 'candle' || p.kind === 'cake')) {
         target.y += Math.sin(p.base.x * .5) * .5;
       }
-      p.current.lerp(target, gather);
-      const offset = i * 3;
-      p.current.toArray(this.positions, offset);
+      // Keep the flame at the wick even when the cake is pressed as soon as it appears.
+      p.current.lerp(target, fixedFlame ? 1 : gather);
+      p.current.toArray(this.positions, i * 3);
+      const rgba = i * 4;
       const color = this.palette[p.layer] || p.color;
-      const light = p.kind === 'flame' ? 1 - wishProgress : 1;
-      this.colors[offset] += (color.r * light - this.colors[offset]) * tint;
-      this.colors[offset + 1] += (color.g * light - this.colors[offset + 1]) * tint;
-      this.colors[offset + 2] += (color.b * light - this.colors[offset + 2]) * tint;
+      const light = p.kind === 'flame' && !fixedFlame ? remaining : 1;
+      this.colors[rgba] += (color.r * light - this.colors[rgba]) * tint;
+      this.colors[rgba + 1] += (color.g * light - this.colors[rgba + 1]) * tint;
+      this.colors[rgba + 2] += (color.b * light - this.colors[rgba + 2]) * tint;
+      if (fixedFlame) {
+        const alpha = this.colors[rgba + 3];
+        this.colors[rgba + 3] = afterWish ? 0 : alpha + (flameOpacity - alpha) * tint;
+      }
     }
 
     if (phase === 'free') {

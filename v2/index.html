@@ -7,18 +7,18 @@
   <title>徐凡，生日快乐呀！</title>
   <link rel="icon" type="image/svg+xml" href="../src/icon.svg">
   <link rel="stylesheet" href="../birthday.css">
-  <link rel="stylesheet" href="./stardust.css">
+  <link rel="stylesheet" href="./stardust.css?v=2">
   <script defer src="../src/vendor/three.r128.min.js"></script>
-  <script defer src="../particles.js?v=4"></script>
+  <script defer src="../particles.js?v=5"></script>
   <script defer src="./stardust-words.js"></script>
-  <script defer src="../birthday.js?v=2"></script>
+  <script defer src="../birthday.js?v=3"></script>
 </head>
 <body>
   <!-- Adapted from mnbvcxzz1375/HappyBirthday (ecb8da3).
        Original particle choreography: https://github.com/mnbvcxzz1375/HappyBirthday -->
   <audio id="bgm" loop preload="metadata" src="../src/jiangguo.m4a"></audio>
   <main>
-    <div id="canvas-container" tabindex="-1" aria-label="旋转生日蛋糕，可使用左右方向键">
+    <div id="canvas-container" tabindex="-1" aria-label="按住左右拖动或使用左右方向键旋转生日蛋糕">
       <div id="stardust-words" role="group" aria-label="星尘里的印象" hidden>
         <span>温柔</span><span>有趣</span><span>傻傻的</span><span>善良</span>
         <span>记性差</span><span>负责任</span><span>漂亮</span><span>不吃早餐</span>
@@ -83,7 +83,7 @@
       </article>
     </section>
 
-    <p id="rotate-hint" hidden>左右拖动，转一转蛋糕</p>
+    <p id="rotate-hint" hidden>按住左右拖动，看看星尘里的字</p>
     <button class="round-button" id="floating-gift-btn" type="button" hidden title="再读一次贺卡" aria-label="再读一次贺卡">🎁</button>
   </main>
 </body>

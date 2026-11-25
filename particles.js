@@ -140,8 +140,6 @@ class BirthdayParticles {
     this.container = container;
     this.withWords = withWords;
     this.dustLightness = withWords ? .43 : .6;
-    this.rotationDamping = withWords ? .9 : .96;
-    this.autoTurn = withWords ? .0057 : .005;
     this.reducedTimeScale = withWords ? 0 : .18;
     this.mobile = matchMedia('(pointer: coarse)').matches;
     this.count = this.mobile ? 4000 : 7500;
@@ -241,9 +239,7 @@ class BirthdayParticles {
 
   turn(delta, isTouch) {
     if (this.withWords) {
-      const angle = delta * (isTouch ? .012 : .006);
-      this.yaw += angle;
-      this.rotationVelocity = THREE.MathUtils.clamp(angle * .18, -.025, .025);
+      this.yaw += delta * (isTouch ? .012 : .006);
       return;
     }
     this.rotationVelocity = delta * (isTouch ? .015 : .008);
@@ -259,6 +255,7 @@ class BirthdayParticles {
     const remaining = 1 - wishProgress;
     const flameOpacity = remaining * remaining;
     const afterWish = phase === 'celebration' || phase === 'card' || phase === 'free';
+    const orbitAngle = this.withWords ? 0 : t * .1;
     const target = this.target;
     for (let i = 0; i < this.count; i++) {
       const p = this.particles[i];
@@ -272,7 +269,7 @@ class BirthdayParticles {
         target.y += Math.sin(t * .5 + target.x * .05) * 20;
         p.color.setHSL(.8 + Math.sin(t * .1 + target.x * .01) * .1, .7, .6);
       } else if (afterWish && p.kind === 'bg') {
-        const a = p.angle + t * .1 + p.orbitSpeed;
+        const a = p.angle + orbitAngle + p.orbitSpeed;
         const inCluster = p.clusterPhase !== undefined;
         const r = p.radius + (inCluster ? .4 * Math.sin(t * .6 + p.clusterPhase) : Math.sin(t + i) * 5);
         target.x = Math.cos(a) * r;
@@ -304,10 +301,9 @@ class BirthdayParticles {
     }
 
     if (phase === 'free') {
-      if (!this.dragging) {
-        this.rotationVelocity *= this.rotationDamping ** frames;
-        if (this.withWords && reducedMotion) this.rotationVelocity = 0;
-        this.yaw += (this.rotationVelocity + (reducedMotion ? 0 : this.autoTurn)) * frames;
+      if (!this.withWords && !this.dragging) {
+        this.rotationVelocity *= .96 ** frames;
+        this.yaw += (this.rotationVelocity + (reducedMotion ? 0 : .005)) * frames;
       }
     } else if (phase !== 'card') {
       this.yaw = phase === 'intro' ? 0 : Math.sin(t * .15) * .15;

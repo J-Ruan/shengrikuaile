@@ -21,7 +21,6 @@ let progress = 0;
 let holdingSpace = false;
 let activePointer = null;
 let previousX = 0;
-let hoverX = null;
 const wishHoldMs = 2000;
 let holdStartedAt = null;
 
@@ -103,7 +102,8 @@ function releasePointer() {
   if (pointer !== null && stage.hasPointerCapture(pointer)) stage.releasePointerCapture(pointer);
 }
 stage.addEventListener('pointerdown', event => {
-  if (!event.isPrimary || event.button !== 0 || (phase !== 'wish' && phase !== 'free')) return;
+  if (!event.isPrimary || event.button !== 0 || activePointer !== null) return;
+  if (phase !== 'wish' && phase !== 'free') return;
   activePointer = event.pointerId;
   stage.setPointerCapture(activePointer);
   syncWishHold();
@@ -115,19 +115,16 @@ stage.addEventListener('pointerdown', event => {
   }
 });
 stage.addEventListener('pointermove', event => {
-  if (wordsLayer && phase === 'free' && event.pointerType === 'mouse' && activePointer === null) {
-    if (hoverX !== null) scene.turn(event.clientX - hoverX, false);
-    hoverX = event.clientX;
+  if (activePointer !== event.pointerId || !scene.dragging) return;
+  if (event.pointerType === 'mouse' && !(event.buttons & 1)) {
+    releasePointer();
     return;
   }
-  hoverX = null;
-  if (activePointer !== event.pointerId || !scene.dragging) return;
   const delta = event.clientX - previousX;
   scene.turn(delta, event.pointerType !== 'mouse');
   previousX = event.clientX;
   if (delta !== 0) byId('rotate-hint').hidden = true;
 });
-stage.addEventListener('pointerleave', () => { hoverX = null; });
 for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   stage.addEventListener(eventName, event => {
     if (activePointer !== event.pointerId) return;
@@ -209,7 +206,6 @@ function setCardFace(flipped) {
 function openCard() {
   phase = 'card';
   if (wordsLayer) wordsLayer.hidden = true;
-  hoverX = null;
   releaseInputs();
   setPaletteOpen(false);
   paletteButton.hidden = true;
@@ -235,10 +231,7 @@ byId('close-card-btn').addEventListener('click', () => {
   paletteButton.hidden = false;
   byId('rotate-hint').hidden = false;
   byId('floating-gift-btn').hidden = false;
-  if (wordsLayer) {
-    wordsLayer.hidden = false;
-    byId('rotate-hint').textContent = scene.mobile ? '左右滑动，看看星尘里的字' : '左右移动鼠标，看看星尘里的字';
-  }
+  if (wordsLayer) wordsLayer.hidden = false;
   stage.focus();
 });
 
@@ -297,7 +290,14 @@ function enableInteractiveStart() {
     return;
   }
   prepareLetter();
-  byId('card-front').prepend(byId('birthday-cover'));
+  const cover = byId('birthday-cover');
+  if (wordsLayer && !cover.complete) {
+    cover.classList.add('loading');
+    const showCover = () => cover.classList.remove('loading');
+    cover.addEventListener('load', showCover, { once: true });
+    cover.addEventListener('error', showCover, { once: true });
+  }
+  byId('card-front').prepend(cover);
   document.querySelector('.letter-body').append(byId('letter'));
   byId('basic-preview').hidden = true;
   byId('start-btn').hidden = false;

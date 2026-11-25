@@ -6,7 +6,7 @@
 
 ## 第二版
 
-[打开第二版生日贺卡](https://j-ruan.github.io/shengrikuaile/v2/)
+[打开第二版生日贺卡](https://j-ruan.github.io/shengrikuaile/v2/index.html?v=20261125-palette)
 
 ## 公共版
 

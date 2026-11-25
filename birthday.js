@@ -73,12 +73,17 @@ function showCake() {
   byId('top-banner').hidden = false;
   byId('wish-controls').hidden = false;
   paletteButton.hidden = false;
-  setPaletteOpen(window.innerWidth >= 760);
+  setPaletteOpen(!wordsLayer && window.innerWidth >= 760);
 }
 
 function syncWishHold() {
   if (phase !== 'wish') return;
-  if (holdingSpace || activePointer !== null) {
+  const holding = holdingSpace || activePointer !== null;
+  if (wordsLayer) {
+    paletteButton.hidden = holding;
+    if (holding) setPaletteOpen(false);
+  }
+  if (holding) {
     if (holdStartedAt === null) holdStartedAt = performance.now();
   } else {
     holdStartedAt = null;

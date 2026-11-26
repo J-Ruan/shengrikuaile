@@ -10,7 +10,7 @@ class StardustNotes extends StardustWords {
       const button = element.querySelector('.note-word');
       if (!button) continue;
       this.notes.push({ element, anchor, button });
-      // A keyboard visitor can reach either note, even on the far side of the cake.
+      // Keyboard focus brings each word around from the far side of the cake.
       button.addEventListener('focus', () => this.faceWord(anchor));
       button.addEventListener('click', event => {
         // Pointer taps are resolved on release so a swipe across a word still turns the cake.

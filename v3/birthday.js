@@ -244,6 +244,7 @@ function openCard() {
   byId('reveal-btn').hidden = true;
   surprise.hidden = false;
   card.hidden = false;
+  card.inert = false;
   setCardFace(false);
   byId('flip-btn').focus();
 }
@@ -257,6 +258,7 @@ function enterFinale() {
   phase = 'free';
   surprise.hidden = true;
   card.hidden = true;
+  surprise.classList.remove('closing');
   stage.classList.add('free');
   paletteButton.hidden = false;
   byId('rotate-hint').hidden = false;
@@ -264,7 +266,20 @@ function enterFinale() {
   if (wordsLayer) wordsLayer.hidden = false;
   stage.focus();
 }
-byId('close-card-btn').addEventListener('click', enterFinale);
+byId('close-card-btn').addEventListener('click', () => {
+  if (phase !== 'card' || card.inert) return;
+  card.inert = true;
+  surprise.classList.add('closing');
+  if (getComputedStyle(surprise).animationName !== 'card-veil-out') enterFinale();
+});
+function finishCardExit(event) {
+  if (event.target === surprise && event.animationName === 'card-veil-out' &&
+      surprise.classList.contains('closing')) {
+    enterFinale();
+  }
+}
+surprise.addEventListener('animationend', finishCardExit);
+surprise.addEventListener('animationcancel', finishCardExit);
 
 function previewFinale() {
   byId('start-overlay').hidden = true;

@@ -10,8 +10,8 @@
 
 ## 第三版
 
-- [打开第三版完整生日贺卡](https://j-ruan.github.io/shengrikuaile/v3/)
-- [直接试玩星光纸条](https://j-ruan.github.io/shengrikuaile/v3/?v=2#stars)
+- [打开第三版完整生日贺卡](https://j-ruan.github.io/shengrikuaile/v3/?v=3)
+- [直接试玩星光纸条](https://j-ruan.github.io/shengrikuaile/v3/?v=3#stars)
 
 ## 公共版
 

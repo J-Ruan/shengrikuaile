@@ -1,3 +1,15 @@
+#surprise-layer.closing { animation: card-veil-out .56s ease-in-out both; }
+#surprise-layer.closing #flip-card-container {
+  animation: card-drift-away .56s cubic-bezier(.4, 0, .55, 1) both;
+}
+@keyframes card-veil-out { to { opacity: 0; } }
+@keyframes card-drift-away {
+  to { transform: translateY(.9rem) scale(.9) rotate(-1.5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #surprise-layer.closing { animation: card-veil-out .24s linear both !important; }
+}
+
 .note-word {
   position: relative;
   display: inline-flex;
@@ -54,6 +66,7 @@
   margin: 0;
   padding: .5rem .42rem;
   text-align: center;
+  text-wrap: balance;
   font-size: clamp(.88rem, 3.9vw, 1.14rem);
   line-height: 1.55;
   letter-spacing: .035em;
@@ -79,7 +92,7 @@
   transform: translateY(.38rem);
   transition-delay: 0s, 0s, .45s;
 }
-@media (max-width: 600px) {
+@media (max-width: 760px) {
   #note-dock {
     left: max(.65rem, env(safe-area-inset-left));
     right: max(1.25rem, env(safe-area-inset-right));

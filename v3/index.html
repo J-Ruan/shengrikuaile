@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#100810">
+  <title>徐凡，生日快乐呀！</title>
+  <link rel="icon" type="image/svg+xml" href="../src/icon.svg">
+  <link rel="stylesheet" href="../birthday.css">
+  <link rel="stylesheet" href="../v2/stardust.css?v=2">
+  <link rel="stylesheet" href="./star-notes.css">
+  <script defer src="../src/vendor/three.r128.min.js"></script>
+  <script defer src="../particles.js?v=6"></script>
+  <script defer src="../v2/stardust-words.js"></script>
+  <script defer src="./star-notes.js"></script>
+  <script defer src="./birthday.js"></script>
+</head>
+<body>
+  <!-- Adapted from mnbvcxzz1375/HappyBirthday (ecb8da3).
+       Original particle choreography: https://github.com/mnbvcxzz1375/HappyBirthday -->
+  <audio id="bgm" loop preload="metadata" src="../src/jiangguo.m4a"></audio>
+  <main>
+    <div id="canvas-container" tabindex="-1" aria-label="按住左右拖动或使用左右方向键旋转生日蛋糕">
+      <div id="stardust-words" role="group" aria-label="星尘里的印象" hidden>
+        <span>温柔</span><span>有趣</span><span>傻傻的</span><span>善良</span>
+        <span><button class="note-word" type="button" aria-expanded="false" aria-controls="star-note" data-note="没关系，你的生日我记得。">记性差</button></span>
+        <span>负责任</span><span>漂亮</span><span>不吃早餐</span><span>苦菊</span><span>香菜</span>
+        <span><button class="note-word" type="button" aria-expanded="false" aria-controls="star-note" data-note="下次想吃辣的时候，叫上我呀。">爱吃辣</button></span>
+      </div>
+    </div>
+    <div id="countdown-label" class="visually-hidden" role="status"></div>
+
+    <section id="start-overlay" aria-labelledby="greeting">
+      <div class="start-card glass-panel">
+        <h1 id="greeting">叮~徐凡，<wbr><span>你的生日祝福到啦</span></h1>
+        <button type="button" class="primary-button" id="start-btn" hidden>开始</button>
+        <div id="basic-preview">
+          <details id="basic-card">
+            <summary class="primary-button">打开贺卡</summary>
+            <img id="birthday-cover" src="../v2/com.ss.android.ugc.aweme.lite_20261124175045.png" width="1200" height="1115" alt="黑色手绘生日蛋糕和彩旗，配有 Happy Birthday 字样">
+            <div id="letter">
+              <p>徐凡，生日快乐呀！</p>
+              <p>本来发条消息就能说完这句话，可一想到是你，我就想多做一点。</p>
+              <p>希望新的一岁，有人陪你做喜欢的事。</p>
+            </div>
+          </details>
+          <p class="preview-help">这里可以先读贺卡。要看粒子动画，请在浏览器里打开。</p>
+        </div>
+      </div>
+    </section>
+
+    <header id="top-banner" hidden>
+      <h2>Happy Birthday</h2>
+      <p>Best Wishes for You</p>
+    </header>
+
+    <div id="tools" hidden>
+      <button class="round-button" id="settings-toggle" type="button" aria-label="蛋糕调色盘" title="蛋糕调色盘" aria-expanded="false" aria-controls="settings-panel">🎨</button>
+      <button class="round-button" id="music-btn" type="button" aria-label="背景音乐" title="播放背景音乐" aria-pressed="false">🎵</button>
+      <div id="settings-panel" hidden>
+        <label>底层颜色 <input id="picker-bottom" type="color" value="#ff69b4" data-layer="bottom"></label>
+        <label>顶层颜色 <input id="picker-top" type="color" value="#ffb6c1" data-layer="top"></label>
+        <label>奶油颜色 <input id="picker-cream" type="color" value="#ffffff" data-layer="cream"></label>
+      </div>
+    </div>
+
+    <section id="wish-controls" hidden aria-labelledby="wish-hint">
+      <p id="wish-hint">长按蛋糕 2 秒，许个愿吧</p>
+      <progress id="wish-meter" max="1" value="0" aria-label="长按许愿进度"></progress>
+    </section>
+
+    <section id="surprise-layer" hidden aria-label="生日贺卡">
+      <button class="gift-button" id="reveal-btn" type="button">🎁 打开礼物</button>
+      <article id="flip-card-container" hidden aria-label="给徐凡的贺卡">
+        <div class="flip-card-inner">
+          <div class="card-face card-front" id="card-front">
+            <button type="button" class="primary-button" id="flip-btn">翻开贺卡</button>
+          </div>
+          <div class="card-face card-back" id="card-back" inert aria-hidden="true">
+            <div class="letter-body">
+              <span class="envelope" aria-hidden="true">💌</span>
+            </div>
+            <button type="button" class="quiet-button" id="close-card-btn">再陪我看会儿星星</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <p id="rotate-hint" hidden>按住左右拖动，轻点带 ✦ 的词</p>
+    <div id="note-dock" role="status" aria-live="polite" aria-atomic="true">
+      <p id="star-note" aria-hidden="true"></p>
+    </div>
+    <button class="round-button" id="floating-gift-btn" type="button" hidden title="再读一次贺卡" aria-label="再读一次贺卡">🎁</button>
+  </main>
+</body>
+</html>

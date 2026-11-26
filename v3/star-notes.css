@@ -1,0 +1,88 @@
+.note-word {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .22em;
+  vertical-align: top;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: .18em;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-shadow: inherit;
+  touch-action: none;
+  pointer-events: none;
+}
+.note-word.in-front { pointer-events: auto; }
+.note-word::before {
+  content: "";
+  width: .49em;
+  height: .63em;
+  background: #fff0d9;
+  clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 61%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.note-word.in-front::before {
+  opacity: 1;
+  animation: starlight 2.8s ease-in-out infinite;
+}
+/* Enlarge the touch target without moving the word away from its particle cluster. */
+.note-word::after { content: ""; position: absolute; inset: -11px -3px; }
+.note-word[aria-expanded="true"] { color: #fff2e5; }
+@keyframes starlight {
+  50% { opacity: .7; transform: scale(.83); }
+}
+
+#note-dock {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 1rem;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  place-items: center;
+  pointer-events: none;
+}
+#star-note {
+  grid-column: 2;
+  position: relative;
+  max-width: 100%;
+  margin: 0;
+  padding: .5rem .42rem;
+  text-align: center;
+  font-size: clamp(.88rem, 3.9vw, 1.14rem);
+  line-height: 1.55;
+  letter-spacing: .035em;
+  color: #ffe7eb;
+  text-shadow: 0 1px 6px #110710, 0 0 15px #cc729a88;
+  background: radial-gradient(ellipse at center, #281322c9, transparent 74%);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .38s ease, transform .45s ease, visibility 0s;
+}
+#star-note::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #edb9ce99, transparent);
+}
+#star-note[aria-hidden="true"] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(.38rem);
+  transition-delay: 0s, 0s, .45s;
+}
+@media (max-width: 600px) {
+  #note-dock {
+    left: max(.65rem, env(safe-area-inset-left));
+    right: max(1.25rem, env(safe-area-inset-right));
+    grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(60px, 1fr);
+  }
+}

@@ -119,8 +119,6 @@ stage.addEventListener('pointerdown', event => {
       x: event.clientX, y: event.clientY, started: event.timeStamp, dragged: false
     };
     previousX = event.clientX;
-    scene.dragging = true;
-    scene.rotationVelocity = 0;
   }
   stage.setPointerCapture(activePointer);
   syncWishHold();
@@ -138,6 +136,8 @@ stage.addEventListener('pointermove', event => {
   if (!freeGesture.dragged) {
     if (!beyondTapDistance(event)) return;
     freeGesture.dragged = true;
+    scene.dragging = true;
+    if (!freeGesture.word) stardustWords.activate(null);
   }
   const delta = event.clientX - previousX;
   scene.turn(delta, event.pointerType !== 'mouse');
@@ -173,6 +173,7 @@ window.addEventListener('keydown', event => {
     syncWishHold();
   } else if (phase === 'free' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
     event.preventDefault();
+    stardustWords.activate(null);
     scene.yaw += event.key === 'ArrowLeft' ? -.12 : .12;
   }
 });

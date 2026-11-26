@@ -5,7 +5,6 @@ class StardustNotes extends StardustWords {
     super(scene, layer);
     this.message = message;
     this.openButton = null;
-    this.motionScale = 1;
     this.notes = [];
     for (const { element, anchor } of this.labels) {
       const button = element.querySelector('.note-word');
@@ -39,11 +38,9 @@ class StardustNotes extends StardustWords {
   }
 
   frameDuration(seconds) {
-    // Slow the whole scene clock together so words stay attached to their pink motes.
-    const target = this.openButton ? .18 : 1;
-    this.motionScale += (target - this.motionScale) * (1 - Math.exp(-6 * seconds));
+    // Keep the focused word in reach while a keyboard visitor chooses a note.
     if (!this.openButton && this.layer.contains(document.activeElement)) return 0;
-    return seconds * this.motionScale;
+    return seconds;
   }
 
   draw() {

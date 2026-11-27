@@ -9,28 +9,6 @@
   <link rel="stylesheet" href="../birthday.css">
   <link rel="stylesheet" href="../v2/stardust.css?v=2">
   <link rel="stylesheet" href="../v3/star-notes.css?v=3">
-  <style>
-    #quick-countdown {
-      font: bold clamp(8rem, 32vmin, 18rem)/1 Arial, sans-serif;
-      color: #fff3fa;
-      filter: drop-shadow(0 0 .055em #efabd2);
-    }
-    @supports ((background-clip: text) or (-webkit-background-clip: text)) {
-      #quick-countdown {
-        background: radial-gradient(circle, #fff6fc 30%, #ffc7e2 45%, transparent 66%) 0 0 / .023em .023em;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      #quick-countdown { animation: gather-digit 1.2s ease-out infinite; }
-      @keyframes gather-digit {
-        from { opacity: .65; transform: scale(1.12); }
-        35%, to { opacity: 1; transform: scale(1); }
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- Adapted from mnbvcxzz1375/HappyBirthday (ecb8da3).
@@ -55,7 +33,6 @@
     <div id="countdown-label" class="visually-hidden" role="status"></div>
 
     <section id="start-overlay" aria-labelledby="greeting">
-      <span id="quick-countdown" aria-hidden="true" hidden></span>
       <div class="start-card glass-panel">
         <h1 id="greeting">叮~徐凡，<wbr><span>你的生日祝福到啦</span></h1>
         <button type="button" class="primary-button" id="start-btn" hidden>开始</button>
@@ -66,7 +43,7 @@
             <div id="letter">
               <p>徐凡，生日快乐呀！</p>
               <p>本来发条消息就能说完这句话，可一想到是你，我就想多做一点。</p>
-              <p>希望新的一岁，诸事顺遂。</p>
+              <p>希望新的一岁，有人陪你做喜欢的事。</p>
             </div>
           </details>
           <p class="preview-help">这里可以先读贺卡。要看粒子动画，请在浏览器里打开。</p>
@@ -125,14 +102,9 @@
       const preview = document.getElementById('basic-preview');
       const reader = document.getElementById('basic-card');
       const help = preview.querySelector('.preview-help');
-      const greeting = start.closest('.start-card');
-      const number = document.getElementById('quick-countdown');
-      const status = document.getElementById('countdown-label');
       let loading = false;
       let requested = false;
-      let ready = false;
-      let remaining = 3;
-      let countdownTimer;
+      let readerTimer;
 
       function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -146,42 +118,11 @@
       }
 
       function showReader() {
-        clearTimeout(countdownTimer);
-        number.hidden = true;
-        greeting.hidden = false;
+        clearTimeout(readerTimer);
         start.hidden = true;
         preview.hidden = false;
         help.textContent = '动画暂时加载失败，可以在这里读贺卡。';
-        if (requested) {
-          status.textContent = help.textContent;
-          reader.open = true;
-        }
-      }
-
-      function enterCake() {
-        document.getElementById('start-overlay').hidden = true;
-        document.getElementById('tools').hidden = false;
-        showCake();
-        updateMusicButton();
-        document.getElementById('canvas-container').focus();
-      }
-
-      function countDown() {
-        if (remaining > 0) {
-          number.textContent = status.textContent = String(remaining);
-          countdownTimer = setTimeout(() => {
-            remaining--;
-            countDown();
-          }, 1200);
-        } else if (ready) {
-          enterCake();
-        } else {
-          number.hidden = true;
-          greeting.hidden = false;
-          start.textContent = status.textContent = '正在准备蛋糕…';
-          preview.hidden = false;
-          help.textContent = '星光还在加载，你也可以先读贺卡。';
-        }
+        if (requested) reader.open = true;
       }
 
       function sceneReady() {
@@ -191,14 +132,15 @@
           else showReader();
           return;
         }
-        ready = true;
+        clearTimeout(readerTimer);
         start.removeEventListener('click', startEarly);
-        if (document.getElementById('start-overlay').hidden) {
-          clearTimeout(countdownTimer);
-          return;
+        start.disabled = false;
+        start.textContent = '开始';
+        if (requested && location.hash !== '#stars') {
+          const playing = !music.paused;
+          start.click();
+          if (playing) music.volume = .5;
         }
-        // The first tap already started the clock. Only hand off once it reaches zero.
-        if (requested && remaining === 0) enterCake();
       }
 
       async function loadScene() {
@@ -232,12 +174,14 @@
         if (requested) return;
         requested = true;
         start.disabled = true;
-        greeting.hidden = true;
-        number.hidden = false;
-        countDown();
+        start.textContent = '正在点亮星光…';
         // Start playback within the actual tap, even if the animation is still downloading.
         music.volume = .5;
         music.play().catch(() => {});
+        readerTimer = setTimeout(() => {
+          preview.hidden = false;
+          help.textContent = '星光还在加载，你也可以先读贺卡。';
+        }, 3500);
         loadScene();
       }
 
@@ -246,7 +190,7 @@
       }, { once: true });
       start.addEventListener('click', startEarly);
       preview.hidden = true;
-      start.hidden = location.hash === '#stars';
+      start.hidden = false;
       requestAnimationFrame(() => requestAnimationFrame(loadScene));
     })();
   </script>

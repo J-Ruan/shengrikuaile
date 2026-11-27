@@ -5,6 +5,10 @@
 - [打开最终版完整生日贺卡](https://j-ruan.github.io/shengrikuaile/)
 - [直接试玩星光纸条](https://j-ruan.github.io/shengrikuaile/#stars)
 
+## Flash 版
+
+[打开适合手机慢网的生日贺卡](https://j-ruan.github.io/shengrikuaile/flash/)
+
 ## 第一版
 
 [打开第一版生日贺卡](https://j-ruan.github.io/shengrikuaile/v1/)
